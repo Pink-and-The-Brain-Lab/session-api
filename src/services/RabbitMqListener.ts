@@ -1,8 +1,7 @@
-import RabbitMqManageConnection from "../utils/RabbitMqManageConnection";
 import authConfig from '../config/auth';
 import { sign } from "jsonwebtoken";
 import UserSession from "../models/user-session.model";
-import { RabbitMqQueues } from "../utils/rabbitmq-queues.enum";
+import { RabbitMqQueues } from "../enums/rabbitmq-queues.enum";
 import { Channel, ConsumeMessage } from "amqplib";
 import { IRabbitQueueContent } from "./interfaces/rabbit-queue-content.inteface";
 import { responseRabbitQueue } from "./interfaces/response-rabbit-queue.type";
@@ -10,12 +9,13 @@ import { IValidationTokenData } from "./interfaces/validation-token-data.interfa
 import jwt from 'jsonwebtoken';
 import 'dotenv/config';
 import { IErrorMessage } from "../errors/error-message.interface";
+import RabbitMqManageConnection from 'millez-lib-api/src/rabbitMQ-manage-connection/RabbitMqManageConnection';
 
 class RabbitMqListener {
     private rabbitmq: RabbitMqManageConnection;
 
     async listeners(): Promise<void> {
-        this.rabbitmq = new RabbitMqManageConnection();
+        this.rabbitmq = new RabbitMqManageConnection('amqp://localhost');
         this.createSessionListener();
         this.validateSessionListener();
     }
@@ -37,7 +37,7 @@ class RabbitMqListener {
             if (!message) return;
             const content: string = JSON.parse(message.content.toString()).data;
             let response: any = await this.validateSession(content || '');
-            this.rabbitQueueResponse(channel, message, response);
+            this.rabbitQueueResponse(channel, message, response );
             channel.ack(message);
         });
     }

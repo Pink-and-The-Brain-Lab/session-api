@@ -38,6 +38,7 @@
     "dotenv": "16.4.1",
     "express": "4.18.2",
     "express-async-errors": "3.1.1",
+    "millez-lib-api": "0.0.4",
     "jsonwebtoken": "9.0.1",
     "mongoose": "7.6.3",
     "pg": "8.11.1",
