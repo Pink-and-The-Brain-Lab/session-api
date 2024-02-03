@@ -9,7 +9,7 @@ import { IValidationTokenData } from "./interfaces/validation-token-data.interfa
 import jwt from 'jsonwebtoken';
 import 'dotenv/config';
 import { IErrorMessage } from "../errors/error-message.interface";
-import RabbitMqManageConnection from 'millez-lib-api/src/rabbitMQ-manage-connection/RabbitMqManageConnection';
+import { RabbitMqManageConnection } from 'millez-lib-api';
 
 class RabbitMqListener {
     private rabbitmq: RabbitMqManageConnection;
