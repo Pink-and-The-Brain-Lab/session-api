@@ -32,8 +32,8 @@ class RabbitMqListener {
     }
 
     private async validateSessionListener(): Promise<void> {
-        const channel = await this.rabbitmq.createChannel(RabbitMqQueues.VALIDATE_SESSION);
-        channel.consume(RabbitMqQueues.VALIDATE_SESSION, async (message: ConsumeMessage | null) => {
+        const channel = await this.rabbitmq.createChannel(RabbitMqQueues.VALIDATE_USER_SESSION);
+        channel.consume(RabbitMqQueues.VALIDATE_USER_SESSION, async (message: ConsumeMessage | null) => {
             if (!message) return;
             const content: string = JSON.parse(message.content.toString()).data;
             let response: any = await this.validateSession(content || '');
@@ -57,7 +57,6 @@ class RabbitMqListener {
             const { secret, expiresIn } = authConfig.jwt;
             const tokenConfig = keepLoggedIn ? { subject: userId } : { subject: userId, expiresIn };
             const token = sign({}, secret, tokenConfig);
-
             const userSession = new UserSession({ userId, token, keepLoggedIn });
             await userSession.save();
             return { token };
