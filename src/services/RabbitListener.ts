@@ -2,57 +2,22 @@ import authConfig from '../config/auth';
 import { sign } from "jsonwebtoken";
 import UserSession from "../models/user-session.model";
 import { RabbitMqQueues } from "../enums/rabbitmq-queues.enum";
-import { Channel, ConsumeMessage } from "amqplib";
 import { IRabbitQueueContent } from "./interfaces/rabbit-queue-content.inteface";
-import { responseRabbitQueue } from "./interfaces/response-rabbit-queue.type";
 import { IValidationTokenData } from "./interfaces/validation-token-data.interface";
 import jwt from 'jsonwebtoken';
 import 'dotenv/config';
-import { IErrorMessage } from "../errors/error-message.interface";
-import { RabbitMqManageConnection } from 'millez-lib-api';
+import { RabbitMqListener, RabbitMqManageConnection } from 'millez-lib-api';
+import { IJwtTokenValidation } from './interfaces/jwt-tokn-validation.interface';
 
-class RabbitMqListener {
-    private rabbitmq: RabbitMqManageConnection;
-
+class RabbitListener {
     async listeners(): Promise<void> {
-        this.rabbitmq = new RabbitMqManageConnection('amqp://localhost');
-        this.createSessionListener();
-        this.validateSessionListener();
+        const connection = new RabbitMqManageConnection('amqp://localhost');
+        const rabbitListener = new RabbitMqListener(connection);
+        rabbitListener.genericListener<IValidationTokenData, IRabbitQueueContent>(RabbitMqQueues.CREATE_SESSION, this.createToken);
+        rabbitListener.genericListener<IJwtTokenValidation | void , string>(RabbitMqQueues.VALIDATE_USER_SESSION, this.validateSession);
     }
 
-    private async createSessionListener(): Promise<void> {
-        const channel = await this.rabbitmq.createChannel(RabbitMqQueues.CREATE_SESSION);
-        channel.consume(RabbitMqQueues.CREATE_SESSION, async (message: ConsumeMessage | null) => {
-            if (!message) return;
-            const content: IRabbitQueueContent = JSON.parse(message.content.toString()).data;
-            let response: IValidationTokenData | IErrorMessage = await this.createToken(content.userId, content.keepLoggedIn);
-            this.rabbitQueueResponse(channel, message, response);
-            channel.ack(message);
-        });
-    }
-
-    private async validateSessionListener(): Promise<void> {
-        const channel = await this.rabbitmq.createChannel(RabbitMqQueues.VALIDATE_USER_SESSION);
-        channel.consume(RabbitMqQueues.VALIDATE_USER_SESSION, async (message: ConsumeMessage | null) => {
-            if (!message) return;
-            const content: string = JSON.parse(message.content.toString()).data;
-            let response: any = await this.validateSession(content || '');
-            this.rabbitQueueResponse(channel, message, response );
-            channel.ack(message);
-        });
-    }
-
-    private rabbitQueueResponse(channel: Channel, message: ConsumeMessage, response: responseRabbitQueue): void {
-        const correlationId = message.properties.correlationId;
-        const replyTo = message.properties.replyTo;
-        channel.sendToQueue(
-            replyTo,
-            Buffer.from(JSON.stringify(response)),
-            { correlationId }
-        );
-    }
-
-    private async createToken(userId: string, keepLoggedIn: boolean): Promise<IValidationTokenData | IErrorMessage> {
+    private async createToken({ userId, keepLoggedIn }: IRabbitQueueContent): Promise<IValidationTokenData> {
         try {
             const { secret, expiresIn } = authConfig.jwt;
             const tokenConfig = keepLoggedIn ? { subject: userId } : { subject: userId, expiresIn };
@@ -61,11 +26,11 @@ class RabbitMqListener {
             await userSession.save();
             return { token };
         } catch (error) {
-            return error as IErrorMessage;
+            return error as IValidationTokenData;
         }
     }
 
-    private validateSession(token: string) {
+    private validateSession(token: string): IJwtTokenValidation | void {
         const secret = process.env.JWT_SECRET || '';
         return jwt.verify(token, secret, (error: any, decoded: any) => ({
             ...decoded,
@@ -114,4 +79,4 @@ class RabbitMqListener {
   
 };
 
-export default RabbitMqListener;
+export default RabbitListener;

@@ -1,6 +1,6 @@
 import app from "./app";
-import RabbitMqListener from "./services/RabbitMqListener";
+import RabbitListener from "./services/RabbitListener";
 app.listen(3002, () => {
     console.log("users API started on port 3002!");
-    new RabbitMqListener().listeners();
+    new RabbitListener().listeners();
 });

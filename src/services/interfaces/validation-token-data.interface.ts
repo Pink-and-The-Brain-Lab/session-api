@@ -1,3 +1,6 @@
 export interface IValidationTokenData {
-    token: string;
+    token?: string;
+    status?: string;
+    message?: string;
+    statusCode?: number;
 }
