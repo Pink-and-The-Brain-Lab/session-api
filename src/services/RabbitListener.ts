@@ -31,11 +31,16 @@ class RabbitListener {
     }
 
     private validateSession(token: string): IJwtTokenValidation | void {
-        const secret = process.env.JWT_SECRET || '';
-        return jwt.verify(token, secret, (error: any, decoded: any) => ({
-            ...decoded,
-            expiredAt: error?.expiredAt
-        }));
+        try {
+            const secret = process.env.JWT_SECRET || '';
+            return jwt.verify(token, secret, (error: any, decoded: any) => {
+                return {
+                ...decoded,
+                expiredAt: error?.expiredAt
+            }});
+        } catch (error) {
+            return error as IJwtTokenValidation;
+        }
     }
 
     // TODOOOOOOOOOOOOOOO
