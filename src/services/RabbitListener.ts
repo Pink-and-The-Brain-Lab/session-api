@@ -6,7 +6,7 @@ import { IRabbitQueueContent } from "./interfaces/rabbit-queue-content.inteface"
 import { IValidationTokenData } from "./interfaces/validation-token-data.interface";
 import jwt from 'jsonwebtoken';
 import 'dotenv/config';
-import { RabbitMqListener, RabbitMqManageConnection } from 'millez-lib-api';
+import { AppError, RabbitMqListener, RabbitMqManageConnection } from 'millez-lib-api';
 import { IJwtTokenValidation } from './interfaces/jwt-tokn-validation.interface';
 
 class RabbitListener {
@@ -34,6 +34,7 @@ class RabbitListener {
         try {
             const secret = process.env.JWT_SECRET || '';
             return jwt.verify(token, secret, (error: any, decoded: any) => {
+                if (error) throw new AppError(error, 401);
                 return {
                 ...decoded,
                 expiredAt: error?.expiredAt
