@@ -6,6 +6,7 @@
   "scripts": {
     "dev:server": "ts-node-dev --inspect --transpile-only --ignore-watch node_modules src/server.ts",
     "typeorm": "typeorm-ts-node-commonjs",
+    "docker": "docker-compose up -d",
     "typeorm:run": "npm run typeorm migration:run -- -d ./src/data-source.ts"
   },
   "repository": {
@@ -38,12 +39,11 @@
     "dotenv": "16.4.1",
     "express": "4.18.2",
     "express-async-errors": "3.1.1",
-    "millez-lib-api": "0.0.28",
+    "millez-lib-api": "0.0.34",
     "jsonwebtoken": "9.0.1",
     "mongoose": "7.6.3",
     "pg": "8.11.1",
     "reflect-metadata": "0.1.13",
-    "typeorm": "0.3.17",
     "uuidv4": "6.2.13"
   }
 }
