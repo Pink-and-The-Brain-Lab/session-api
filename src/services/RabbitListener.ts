@@ -8,10 +8,11 @@ import jwt from 'jsonwebtoken';
 import 'dotenv/config';
 import { AppError, RabbitMqListener, RabbitMqManageConnection } from 'millez-lib-api';
 import { IJwtTokenValidation } from './interfaces/jwt-tokn-validation.interface';
+import { RABBITMQ_HOST_URL } from '../constants/rabbitmq-host-url';
 
 class RabbitListener {
     async listeners(): Promise<void> {
-        const connection = new RabbitMqManageConnection('amqp://localhost');
+        const connection = new RabbitMqManageConnection(RABBITMQ_HOST_URL);
         const rabbitListener = new RabbitMqListener(connection);
         rabbitListener.genericListener<IValidationTokenData, IRabbitQueueContent>(RabbitMqQueues.CREATE_SESSION, this.createToken);
         rabbitListener.genericListener<IJwtTokenValidation | void , string>(RabbitMqQueues.VALIDATE_USER_SESSION, this.validateSession);
